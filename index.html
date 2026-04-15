@@ -623,6 +623,99 @@
     }
     .link-pill .ico { font-size: 16px; }
 
+    /* ─── Modelos de Claude Code ────────────────────────── */
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 36px;
+      width: 100%;
+      max-width: 960px;
+    }
+    .model-card {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 18px;
+      padding: 26px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+    .model-card.featured {
+      border-color: var(--coral-dim);
+      background: #1C1410;
+    }
+    .model-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--coral);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .model-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .model-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      border: 1px solid #2A2520;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .model-name  { font-size: 15px; font-weight: 600; color: var(--sand-dim); }
+    .model-tier  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .model-bars  { display: flex; flex-direction: column; gap: 7px; }
+    .model-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .model-bar-row span { font-size: 10px; color: var(--muted); min-width: 54px; }
+    .model-bar-wrap {
+      flex: 1;
+      height: 5px;
+      background: #1E1B18;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .model-bar { height: 100%; border-radius: 3px; }
+    .model-uses {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 0;
+    }
+    .model-uses li {
+      font-size: 12px;
+      color: var(--sand-dim);
+      display: flex;
+      gap: 7px;
+    }
+    .model-uses li::before { content: '→'; color: var(--muted); flex-shrink: 0; }
+    .model-card.featured .model-uses li::before { color: var(--coral); }
+    .model-rec {
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid #2A2520;
+      border-radius: 8px;
+      padding: 8px 10px;
+      line-height: 1.5;
+      margin-top: auto;
+    }
+
     /* ─── Skills slides ────────────────────────────────── */
     .skills-grid {
       display: grid;
@@ -980,7 +1073,7 @@
 <div class="glow glow-tl"></div>
 <div class="glow glow-br"></div>
 
-<div class="slide-num" id="slideNum">01 / 14</div>
+<div class="slide-num" id="slideNum">01 / 15</div>
 <div class="key-hint">← → para navegar</div>
 
 <div class="deck" id="deck">
@@ -1374,6 +1467,82 @@ Package manager: <span class="str">pnpm</span>
     </div>
   </section>
 
+  <!-- ── SLIDE – Modelos de Claude Code ──────────────── -->
+  <section class="slide" id="s-models">
+    <span class="eyebrow">Elegí el modelo adecuado</span>
+    <h2>Los 3 modelos de <span class="highlight">Claude Code</span></h2>
+    <div class="models-grid">
+
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-icon" style="background:rgba(207,96,56,0.08);border-color:#3A2A20;">⚡</div>
+          <div>
+            <div class="model-name">Claude Haiku 4.5</div>
+            <div class="model-tier">Rápido &amp; Económico</div>
+          </div>
+        </div>
+        <div class="model-bars">
+          <div class="model-bar-row"><span>Velocidad</span><div class="model-bar-wrap"><div class="model-bar" style="width:100%;background:#4A8C6A"></div></div></div>
+          <div class="model-bar-row"><span>Potencia</span><div class="model-bar-wrap"><div class="model-bar" style="width:38%;background:#3A5A4A"></div></div></div>
+          <div class="model-bar-row"><span>Costo</span><div class="model-bar-wrap"><div class="model-bar" style="width:15%;background:#4A6A8C"></div></div></div>
+        </div>
+        <ul class="model-uses">
+          <li>Autocompletado y edits simples</li>
+          <li>Tareas repetitivas en volumen</li>
+          <li>Respuestas rápidas en chat</li>
+          <li>Pipelines de alta frecuencia</li>
+        </ul>
+        <div class="model-rec">Ideal cuando la velocidad y el costo importan más que la profundidad</div>
+      </div>
+
+      <div class="model-card featured">
+        <div class="model-badge">Recomendado</div>
+        <div class="model-header">
+          <div class="model-icon" style="background:rgba(207,96,56,0.15);border-color:var(--coral-dim);">◆</div>
+          <div>
+            <div class="model-name" style="color:var(--sand);">Claude Sonnet 4.6</div>
+            <div class="model-tier" style="color:var(--coral);">Balanceado · Default</div>
+          </div>
+        </div>
+        <div class="model-bars">
+          <div class="model-bar-row"><span>Velocidad</span><div class="model-bar-wrap"><div class="model-bar" style="width:72%;background:#4A8C6A"></div></div></div>
+          <div class="model-bar-row"><span>Potencia</span><div class="model-bar-wrap"><div class="model-bar" style="width:76%;background:var(--coral)"></div></div></div>
+          <div class="model-bar-row"><span>Costo</span><div class="model-bar-wrap"><div class="model-bar" style="width:45%;background:#4A6A8C"></div></div></div>
+        </div>
+        <ul class="model-uses">
+          <li>Generación y refactor de código</li>
+          <li>Features nuevas end-to-end</li>
+          <li>Code review y debugging</li>
+          <li>Uso diario en proyectos reales</li>
+        </ul>
+        <div class="model-rec" style="border-color:var(--coral-dim);color:var(--coral);">La mejor relación velocidad / inteligencia para el 90% de los casos</div>
+      </div>
+
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-icon" style="background:rgba(207,96,56,0.08);border-color:#3A2A20;">🧠</div>
+          <div>
+            <div class="model-name">Claude Opus 4.6</div>
+            <div class="model-tier">Máxima Potencia</div>
+          </div>
+        </div>
+        <div class="model-bars">
+          <div class="model-bar-row"><span>Velocidad</span><div class="model-bar-wrap"><div class="model-bar" style="width:45%;background:#4A8C6A"></div></div></div>
+          <div class="model-bar-row"><span>Potencia</span><div class="model-bar-wrap"><div class="model-bar" style="width:100%;background:#C4795A"></div></div></div>
+          <div class="model-bar-row"><span>Costo</span><div class="model-bar-wrap"><div class="model-bar" style="width:100%;background:#4A6A8C"></div></div></div>
+        </div>
+        <ul class="model-uses">
+          <li>Arquitectura y decisiones críticas</li>
+          <li>Bugs complejos y difíciles</li>
+          <li>Razonamiento multi-step profundo</li>
+          <li>Migraciones y refactors grandes</li>
+        </ul>
+        <div class="model-rec">Usalo cuando necesitás la mayor inteligencia posible, sin importar el tiempo</div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ── SLIDE 10 – Skills: ¿Qué son? ───────────────── -->
   <section class="slide" id="s-skills1">
     <span class="eyebrow">Extensiones de comportamiento</span>
@@ -1658,22 +1827,26 @@ Package manager: <span class="str">pnpm</span>
   </div>
   <div class="sidebar-item" onclick="goTo(9)">
     <span class="sb-num">10</span>
-    <div><div class="sb-label">Skills — ¿Qué son?</div><div class="sb-sub">Comandos reutilizables</div></div>
+    <div><div class="sb-label">Modelos de Claude Code</div><div class="sb-sub">Haiku · Sonnet · Opus</div></div>
   </div>
   <div class="sidebar-item" onclick="goTo(10)">
     <span class="sb-num">11</span>
-    <div><div class="sb-label">Skills — Funcionamiento</div><div class="sb-sub">Cómo funcionan y sus límites</div></div>
+    <div><div class="sb-label">Skills — ¿Qué son?</div><div class="sb-sub">Comandos reutilizables</div></div>
   </div>
   <div class="sidebar-item" onclick="goTo(11)">
     <span class="sb-num">12</span>
-    <div><div class="sb-label">Multi-Agentes</div><div class="sb-sub">Contextos en paralelo</div></div>
+    <div><div class="sb-label">Skills — Funcionamiento</div><div class="sb-sub">Cómo funcionan y sus límites</div></div>
   </div>
   <div class="sidebar-item" onclick="goTo(12)">
     <span class="sb-num">13</span>
-    <div><div class="sb-label">Contexto, Agentes y Skills</div><div class="sb-sub">Gestión de tokens</div></div>
+    <div><div class="sb-label">Multi-Agentes</div><div class="sb-sub">Contextos en paralelo</div></div>
   </div>
   <div class="sidebar-item" onclick="goTo(13)">
     <span class="sb-num">14</span>
+    <div><div class="sb-label">Contexto, Agentes y Skills</div><div class="sb-sub">Gestión de tokens</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(14)">
+    <span class="sb-num">15</span>
     <div><div class="sb-label">Demo en video</div><div class="sb-sub">Claude Code en acción</div></div>
   </div>
 </nav>
