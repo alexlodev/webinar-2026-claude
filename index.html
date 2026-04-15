@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introducción a Claude Code</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0E0D0C;
+      --surface:   #181614;
+      --coral:     #CF6038;
+      --coral-dim: #8C3D22;
+      --sand:      #E8D9C4;
+      --sand-dim:  #9C8E7C;
+      --white:     #F5F0EA;
+      --muted:     #4A4540;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ─── Deck ─────────────────────────────────────────── */
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 80px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ─── Typography ────────────────────────────────────── */
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--coral);
+      margin-bottom: 18px;
+      font-weight: 500;
+    }
+    h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(52px, 7vw, 96px);
+      line-height: 1.0;
+      color: var(--sand);
+      text-align: center;
+    }
+    h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: 1.05;
+      color: var(--sand);
+      text-align: center;
+    }
+    h3 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(22px, 3vw, 36px);
+      color: var(--sand);
+    }
+    .sub {
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: var(--sand-dim);
+      text-align: center;
+      max-width: 640px;
+      line-height: 1.65;
+      margin-top: 24px;
+    }
+    .highlight { color: var(--coral); }
+
+    /* ─── Nav ───────────────────────────────────────────── */
+    .nav {
+      position: fixed;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 100;
+    }
+    .nav button {
+      background: none;
+      border: 1px solid var(--muted);
+      color: var(--sand-dim);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav button:hover {
+      border-color: var(--coral);
+      color: var(--coral);
+    }
+    .nav button:disabled {
+      opacity: 0.2;
+      cursor: default;
+    }
+    .progress {
+      display: flex;
+      gap: 8px;
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s;
+    }
+    .dot.on { background: var(--coral); }
+
+    /* ─── Slide-specific layouts ────────────────────────── */
+
+    /* S1 – Title */
+    #s1 { background: var(--bg); }
+    #s1 .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--coral-dim);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 12px;
+      color: var(--coral);
+      letter-spacing: 0.1em;
+      margin-bottom: 32px;
+    }
+    #s1 .badge .dot-live {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--coral);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+    #s1 h1 span { color: var(--coral); }
+    #s1 .divider {
+      width: 48px; height: 1px;
+      background: var(--coral-dim);
+      margin: 32px auto;
+    }
+    #s1 .meta {
+      font-size: 13px;
+      color: var(--sand-dim);
+      letter-spacing: 0.06em;
+    }
+
+    /* S2 – ¿Qué es Claude? */
+    #s2 .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 40px;
+      width: 100%;
+      max-width: 880px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 16px;
+      padding: 28px 32px;
+    }
+    .card .icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+    }
+    .card h3 { font-size: 18px; color: var(--sand); margin-bottom: 8px; }
+    .card p  { font-size: 14px; color: var(--sand-dim); line-height: 1.6; }
+
+    /* S3 – Claude vs Claude Code */
+    #s3 .compare {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      margin-top: 44px;
+      width: 100%;
+      max-width: 900px;
+      align-items: start;
+    }
+    .compare-col {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .compare-col.right { border-color: var(--coral-dim); }
+    .compare-col .label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sand-dim);
+      margin-bottom: 16px;
+    }
+    .compare-col.right .label { color: var(--coral); }
+    .compare-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .compare-col ul li {
+      font-size: 15px;
+      color: var(--sand-dim);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .compare-col ul li::before { content: '—'; color: var(--muted); flex-shrink: 0; }
+    .compare-col.right ul li { color: var(--sand); }
+    .compare-col.right ul li::before { color: var(--coral); content: '→'; }
+    .compare-vs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+      padding-top: 60px;
+      font-family: 'Instrument Serif', serif;
+      font-size: 28px;
+      color: var(--muted);
+    }
+
+    /* S4 – Context Window */
+    #s4 .ctx-box {
+      margin-top: 40px;
+      width: 100%;
+      max-width: 840px;
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 20px;
+      padding: 36px 40px;
+    }
+    .ctx-box .ctx-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--coral);
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+    .ctx-items {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .ctx-item {
+      background: #1E1B18;
+      border: 1px solid #2E2A26;
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ctx-item .ico { font-size: 22px; }
+    .ctx-item span { font-size: 13px; color: var(--sand-dim); line-height: 1.5; }
+    .ctx-footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ctx-footer .token-bar {
+      flex: 1;
+      height: 6px;
+      background: #2A2520;
+      border-radius: 99px;
+      margin: 0 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ctx-footer .token-fill {
+      position: absolute;
+      inset: 0;
+      width: 45%;
+      background: linear-gradient(90deg, var(--coral-dim), var(--coral));
+      border-radius: 99px;
+    }
+    .ctx-footer .token-text {
+      font-size: 12px;
+      color: var(--sand-dim);
+      white-space: nowrap;
+    }
+
+    /* S5 – CLAUDE.md */
+    #s5 .md-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 28px;
+      margin-top: 40px;
+      width: 100%;
+      max-width: 920px;
+      align-items: start;
+    }
+    .terminal {
+      background: #100F0D;
+      border: 1px solid #2A2520;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .terminal-bar {
+      display: flex;
+      gap: 7px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #1E1B18;
+    }
+    .terminal-bar span {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+    }
+    .t-red   { background: #FF5F57; }
+    .t-yellow{ background: #FEBC2E; }
+    .t-green { background: #28C840; }
+    .terminal-body {
+      padding: 20px;
+      font-family: 'Menlo', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.9;
+      color: var(--sand-dim);
+    }
+    .terminal-body .kw  { color: var(--coral); }
+    .terminal-body .str { color: #8ECFAD; }
+    .terminal-body .cmt { color: var(--muted); }
+    .md-points {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .md-point {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .md-point .num {
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--coral-dim);
+      color: var(--coral);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .md-point-body h4 { font-size: 15px; color: var(--sand); margin-bottom: 4px; }
+    .md-point-body p  { font-size: 13px; color: var(--sand-dim); line-height: 1.6; }
+
+    /* S6 – /init */
+    #s6 .init-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 44px;
+      width: 100%;
+      max-width: 880px;
+    }
+    .flow-step {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+    }
+    .flow-step .fs-icon { font-size: 32px; margin-bottom: 14px; }
+    .flow-step h4 { font-size: 15px; color: var(--sand); margin-bottom: 6px; }
+    .flow-step p  { font-size: 13px; color: var(--sand-dim); line-height: 1.55; }
+    .flow-arrow {
+      color: var(--coral-dim);
+      font-size: 22px;
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+    .cmd-badge {
+      display: inline-block;
+      background: #1A1714;
+      border: 1px solid var(--coral-dim);
+      border-radius: 8px;
+      padding: 3px 12px;
+      font-family: monospace;
+      font-size: 15px;
+      color: var(--coral);
+      margin-bottom: 16px;
+    }
+
+    /* S7 – Planning vs Thinking */
+    #s7 .modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 40px;
+      width: 100%;
+      max-width: 860px;
+    }
+    .mode-card {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .mode-card.right { border-color: var(--coral-dim); }
+    .mode-card .mode-tag {
+      display: inline-block;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .mode-card       .mode-tag { background: #1E1B18; color: var(--sand-dim); }
+    .mode-card.right .mode-tag { background: rgba(207,96,56,0.15); color: var(--coral); }
+    .mode-card h3 { font-size: 22px; margin-bottom: 12px; }
+    .mode-card p  { font-size: 14px; color: var(--sand-dim); line-height: 1.7; }
+    .mode-use {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--sand-dim);
+      border-top: 1px solid #2A2520;
+      padding-top: 14px;
+    }
+    .mode-use strong { color: var(--sand); }
+
+    /* S-AI – Asistentes de IA para desarrollo */
+    .ai-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-top: 36px;
+      width: 100%;
+      max-width: 1020px;
+    }
+    .ai-card {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 16px;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .ai-card.featured {
+      border-color: var(--coral-dim);
+      background: #1C1410;
+    }
+    .ai-logo {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .ai-card .ai-name  { font-size: 14px; font-weight: 600; color: var(--sand); }
+    .ai-card .ai-maker { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; margin-top: -4px; }
+    .ai-card .ai-desc  { font-size: 12px; color: var(--sand-dim); line-height: 1.55; }
+    .ai-card .ai-tag {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #1E1B18;
+      color: var(--sand-dim);
+      margin-top: auto;
+    }
+    .ai-card.featured .ai-tag {
+      background: rgba(207,96,56,0.18);
+      color: var(--coral);
+    }
+
+    /* S-Bench – Benchmarks */
+    .bench-wrap {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .bench-header {
+      display: grid;
+      grid-template-columns: 210px 1fr 58px;
+      gap: 12px;
+      align-items: center;
+      padding: 0 8px 8px;
+      border-bottom: 1px solid #2A2520;
+      margin-bottom: 4px;
+    }
+    .bench-header span {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .bench-row {
+      display: grid;
+      grid-template-columns: 210px 1fr 58px;
+      gap: 12px;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .bench-row:hover { background: #161412; }
+    .bench-row.anthropic { background: rgba(207,96,56,0.05); }
+    .bench-row.anthropic:hover { background: rgba(207,96,56,0.09); }
+    .bench-model {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bench-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .bench-model-name { font-size: 13px; color: var(--sand); line-height: 1.2; }
+    .bench-model-maker { font-size: 10px; color: var(--muted); }
+    .bench-bar-wrap {
+      height: 18px;
+      background: #1A1714;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bench-bar {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .bench-pct {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sand-dim);
+      text-align: right;
+    }
+    .bench-row.anthropic .bench-pct { color: var(--coral); }
+    .bench-divider {
+      height: 1px;
+      background: #1E1B18;
+      margin: 4px 0;
+    }
+    .bench-badge {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 11px;
+      color: var(--sand-dim);
+      text-align: center;
+      margin-top: 8px;
+    }
+    .bench-badge strong { color: var(--sand); }
+
+    /* S8 – Closing */
+    #s8 { background: var(--bg); }
+    #s8 .links {
+      display: flex;
+      gap: 16px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .link-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-size: 14px;
+      color: var(--sand-dim);
+    }
+    .link-pill .ico { font-size: 16px; }
+
+    /* ─── Skills slides ────────────────────────────────── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 32px;
+      width: 100%;
+      max-width: 900px;
+    }
+    .skill-card {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .skill-card .sk-tag {
+      display: inline-block;
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--coral);
+      background: rgba(207,96,56,0.1);
+      border: 1px solid var(--coral-dim);
+      border-radius: 6px;
+      padding: 2px 10px;
+      margin-bottom: 10px;
+    }
+    .skill-card h4 { font-size: 14px; color: var(--sand); margin-bottom: 6px; }
+    .skill-card p  { font-size: 12px; color: var(--sand-dim); line-height: 1.55; }
+
+    .skills-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 0;
+      align-items: center;
+      margin-top: 32px;
+      width: 100%;
+      max-width: 880px;
+    }
+    .sf-step {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 14px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+    .sf-step .sf-ico { font-size: 26px; margin-bottom: 10px; }
+    .sf-step h4 { font-size: 13px; color: var(--sand); margin-bottom: 5px; }
+    .sf-step p  { font-size: 12px; color: var(--sand-dim); line-height: 1.5; }
+    .sf-arrow { color: var(--coral-dim); font-size: 20px; padding: 0 10px; }
+
+    .limits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 28px;
+      width: 100%;
+      max-width: 860px;
+    }
+    .limit-item {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .limit-item .li-ico { font-size: 22px; flex-shrink: 0; }
+    .limit-item h4 { font-size: 13px; color: var(--sand); margin-bottom: 4px; }
+    .limit-item p  { font-size: 12px; color: var(--sand-dim); line-height: 1.55; }
+
+    /* ─── Multi-agentes ─────────────────────────────────── */
+    .agent-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 36px;
+      width: 100%;
+      max-width: 940px;
+    }
+    .agent-col {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .agent-col.right { border-color: var(--coral-dim); }
+    .agent-col .ac-tag {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .agent-col.right .ac-tag { color: var(--coral); }
+    .agent-col h3 { font-size: 20px; margin-bottom: 14px; }
+    .agent-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .agent-col ul li { font-size: 13px; color: var(--sand-dim); display: flex; gap: 8px; }
+    .agent-col ul li::before { content: '—'; color: var(--muted); flex-shrink: 0; }
+    .agent-col.right ul li { color: var(--sand); }
+    .agent-col.right ul li::before { content: '✓'; color: var(--coral); }
+    .agent-diagram {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #2A2520;
+    }
+    .agent-box {
+      flex: 1;
+      background: #1A1714;
+      border: 1px solid #2A2520;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--sand-dim);
+      text-align: center;
+    }
+    .agent-box.main { border-color: var(--coral-dim); color: var(--coral); }
+    .agent-line { font-size: 14px; color: var(--muted); }
+
+    /* ─── Contexto, Agentes, Skills ─────────────────────── */
+    .ctx-budget {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 30px;
+      width: 100%;
+      max-width: 900px;
+    }
+    .ctx-budget-col {
+      background: var(--surface);
+      border: 1px solid #2A2520;
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .ctx-budget-col h4 {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .budget-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .budget-item .bi-label { font-size: 12px; color: var(--sand-dim); }
+    .bi-label-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 130px; }
+    .bi-desc { font-size: 10px; color: var(--muted); line-height: 1.4; max-width: 160px; }
+    .budget-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: #1A1714;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .budget-bar { height: 100%; border-radius: 4px; }
+    .budget-item .bi-val { font-size: 11px; color: var(--muted); min-width: 60px; text-align: right; }
+    .ctx-tip {
+      background: rgba(207,96,56,0.07);
+      border: 1px solid var(--coral-dim);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--sand-dim);
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    .ctx-tip strong { color: var(--coral); }
+
+    /* ─── Video demo ────────────────────────────────────── */
+    .video-wrap {
+      margin-top: 32px;
+      width: 100%;
+      max-width: 860px;
+      background: #0A0908;
+      border: 1px solid #2A2520;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      color: var(--sand-dim);
+    }
+    .video-placeholder .play-btn {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: 2px solid var(--coral-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      color: var(--coral);
+    }
+    .video-placeholder p { font-size: 14px; letter-spacing: 0.06em; }
+
+    /* ─── Sidebar ──────────────────────────────────────── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 250px;
+      height: 100vh;
+      background: rgba(11,10,9,0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid #1E1B18;
+      z-index: 150;
+      transform: translateX(-100%);
+      transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      flex-direction: column;
+      padding: 56px 0 90px;
+      overflow-y: auto;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-header {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 20px 14px;
+      border-bottom: 1px solid #1E1B18;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 9px 20px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+    }
+    .sidebar-item:hover { background: #161412; }
+    .sidebar-item.active {
+      border-left-color: var(--coral);
+      background: rgba(207,96,56,0.07);
+    }
+    .sb-num {
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 20px;
+      padding-top: 2px;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .sidebar-item.active .sb-num { color: var(--coral); }
+    .sb-label {
+      font-size: 13px;
+      color: var(--sand-dim);
+      line-height: 1.45;
+    }
+    .sidebar-item.active .sb-label { color: var(--sand); }
+    .sb-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* overlay cuando sidebar está abierto */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 140;
+    }
+    .sidebar-overlay.open { display: block; }
+
+    /* ─── Footer ───────────────────────────────────────── */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 36px;
+      border-top: 1px solid #1E1B18;
+      background: rgba(14,13,12,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+    }
+    .footer-left {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .footer-left .heart { color: var(--coral); }
+    .footer-left strong { color: var(--sand-dim); font-weight: 500; }
+    .footer-right {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-align: right;
+    }
+    .footer-right em { color: var(--sand-dim); font-style: normal; }
+
+    /* ─── Keyboard hint ─────────────────────────────────── */
+    .key-hint {
+      position: fixed;
+      top: 28px;
+      right: 36px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ─── Slide number ──────────────────────────────────── */
+    .slide-num {
+      position: fixed;
+      top: 28px;
+      left: 36px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── Decorative bg glow ────────────────────────────── */
+    .glow {
+      position: fixed;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(207,96,56,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-tl { top: -200px; left: -200px; }
+    .glow-br { bottom: -200px; right: -200px; }
+    .slide > * { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+
+<div class="glow glow-tl"></div>
+<div class="glow glow-br"></div>
+
+<div class="slide-num" id="slideNum">01 / 15</div>
+<div class="key-hint">← → para navegar</div>
+
+<div class="deck" id="deck">
+
+  <!-- ── SLIDE 1 – Title ─────────────────────────────── -->
+  <section class="slide active" id="s1">
+    <div class="badge"><span class="dot-live"></span>WEBINAR 2026</div>
+    <h1>Introducción a<br/><span>Claude Code</span></h1>
+    <div class="divider"></div>
+    <p class="meta">Anthropic AI · Herramientas para Desarrolladores</p>
+  </section>
+
+  <!-- ── SLIDE 2 – Asistentes de IA para desarrollo ── -->
+  <section class="slide" id="s-ai">
+    <span class="eyebrow">El ecosistema actual</span>
+    <h2>Asistentes de <span class="highlight">IA</span> para Desarrollo</h2>
+    <div class="ai-grid">
+
+      <div class="ai-card">
+        <div class="ai-logo" style="background:#1A1A1A; color:#10A37F; border:1px solid #10A37F33;">GPT</div>
+        <div class="ai-name">ChatGPT</div>
+        <div class="ai-maker">OpenAI</div>
+        <div class="ai-desc">Chat general + generación de código. Integrado como motor de GitHub Copilot.</div>
+        <div class="ai-tag">Chat · API</div>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-logo" style="background:#0D1B2E; color:#4285F4; border:1px solid #4285F433;">G</div>
+        <div class="ai-name">Gemini</div>
+        <div class="ai-maker">Google</div>
+        <div class="ai-desc">Integrado en Google Workspace, Android Studio y Firebase. Multimodal nativo.</div>
+        <div class="ai-tag">Chat · IDE</div>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-logo" style="background:#0D1020; color:#6E40C9; border:1px solid #6E40C933;">⌥</div>
+        <div class="ai-name">GitHub Copilot</div>
+        <div class="ai-maker">Microsoft · OpenAI</div>
+        <div class="ai-desc">Autocompletado inline en VS Code y JetBrains. Sugerencias mientras escribís.</div>
+        <div class="ai-tag">IDE · Inline</div>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-logo" style="background:#0A1520; color:#0A84FF; border:1px solid #0A84FF33;">⌘</div>
+        <div class="ai-name">Cursor</div>
+        <div class="ai-maker">Cursor AI</div>
+        <div class="ai-desc">Fork de VS Code con IA embebida. Chat + edición de archivos + contexto del repo.</div>
+        <div class="ai-tag">IDE Completo</div>
+      </div>
+
+      <div class="ai-card featured">
+        <div class="ai-logo" style="background:rgba(207,96,56,0.15); color:var(--coral); border:1px solid var(--coral-dim);">◆</div>
+        <div class="ai-name">Claude Code</div>
+        <div class="ai-maker">Anthropic</div>
+        <div class="ai-desc">CLI con acceso real al sistema. Lee, escribe y ejecuta en tu repo directamente.</div>
+        <div class="ai-tag">CLI · Agente</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── SLIDE 3 – ¿Qué es Claude? ──────────────────── -->
+  <section class="slide" id="s2">
+    <span class="eyebrow">El punto de partida</span>
+    <h2>¿Qué es <span class="highlight">Claude</span>?</h2>
+    <div class="row">
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h3>Modelo de lenguaje</h3>
+        <p>Desarrollado por Anthropic. Diseñado para ser útil, seguro y honesto en conversaciones y tareas complejas.</p>
+      </div>
+      <div class="card">
+        <div class="icon">💬</div>
+        <h3>Asistente de chat</h3>
+        <p>Accesible vía claude.ai o API. Responde preguntas, escribe, analiza y razona — todo desde el navegador.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔑</div>
+        <h3>Base de todo</h3>
+        <p>Claude Haiku, Sonnet y Opus son los modelos. Claude Code los usa internamente para potenciar el desarrollo.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🌐</div>
+        <h3>200K tokens</h3>
+        <p>Ventana de contexto enorme. Puede procesar libros, codebases completos y conversaciones largas en un solo pase.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 4 – Claude vs Claude Code ─────────────── -->
+  <section class="slide" id="s3">
+    <span class="eyebrow">La diferencia clave</span>
+    <h2>Claude <span class="highlight">vs</span> Claude Code</h2>
+    <div class="compare">
+      <div class="compare-col">
+        <div class="label">Claude (chat)</div>
+        <ul>
+          <li>Conversación en el navegador</li>
+          <li>Sin acceso al sistema de archivos</li>
+          <li>Sin contexto del proyecto</li>
+          <li>Sin ejecución de comandos</li>
+          <li>Respuestas de texto</li>
+        </ul>
+      </div>
+      <div class="compare-vs">vs</div>
+      <div class="compare-col right">
+        <div class="label">Claude Code (CLI)</div>
+        <ul>
+          <li>Vive en tu terminal</li>
+          <li>Lee, escribe y navega archivos</li>
+          <li>Entiende tu codebase completo</li>
+          <li>Ejecuta comandos del sistema</li>
+          <li>Acciones concretas en el repo</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 5 – Benchmarks ────────────────────────── -->
+  <section class="slide" id="s-bench">
+    <span class="eyebrow">Rendimiento en código</span>
+    <h2><span class="highlight">SWE-bench</span> Verified</h2>
+    <div class="bench-wrap">
+      <div class="bench-header">
+        <span>Modelo</span>
+        <span>Resolución de issues reales de GitHub (mayor es mejor)</span>
+        <span style="text-align:right">Score</span>
+      </div>
+
+      <!-- Anthropic -->
+      <div class="bench-row anthropic">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#FF8C5A"></div>
+          <div><div class="bench-model-name">Claude Mythos <span style="font-size:9px;background:rgba(207,96,56,0.25);color:var(--coral);padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PREVIEW</span></div><div class="bench-model-maker">Anthropic · Abr 2026 · Solo invitación</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:93.9%; background:linear-gradient(90deg,var(--coral-dim),#FF8C5A)"></div></div>
+        <div class="bench-pct" style="color:#FF8C5A">93.9%</div>
+      </div>
+
+      <div class="bench-row anthropic">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:var(--coral)"></div>
+          <div><div class="bench-model-name">Claude Opus 4.6</div><div class="bench-model-maker">Anthropic · 2025</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:80.8%; background:linear-gradient(90deg,var(--coral-dim),var(--coral))"></div></div>
+        <div class="bench-pct">80.8%</div>
+      </div>
+
+      <div class="bench-row anthropic">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#E8926A"></div>
+          <div><div class="bench-model-name">Claude Sonnet 4.6</div><div class="bench-model-maker">Anthropic · 2025</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:72%; background:linear-gradient(90deg,#7A3018,#E8926A)"></div></div>
+        <div class="bench-pct">72.0%</div>
+      </div>
+
+      <div class="bench-row anthropic">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#C4795A"></div>
+          <div><div class="bench-model-name">Claude Sonnet 3.7</div><div class="bench-model-maker">Anthropic · Extended Thinking</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:70.3%; background:linear-gradient(90deg,#6A2A14,#C4795A)"></div></div>
+        <div class="bench-pct">70.3%</div>
+      </div>
+
+      <div class="bench-divider"></div>
+
+      <!-- OpenAI -->
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#10A37F"></div>
+          <div><div class="bench-model-name">o3</div><div class="bench-model-maker">OpenAI · Reasoning</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:71.7%; background:linear-gradient(90deg,#0A3D2A,#10A37F)"></div></div>
+        <div class="bench-pct">71.7%</div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#18C09A"></div>
+          <div><div class="bench-model-name">GPT-4.1</div><div class="bench-model-maker">OpenAI · 2025</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:55%; background:linear-gradient(90deg,#0A3D2A,#18C09A)"></div></div>
+        <div class="bench-pct">55.0%</div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#1DB87E"></div>
+          <div><div class="bench-model-name">o1</div><div class="bench-model-maker">OpenAI · Reasoning</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:48.9%; background:linear-gradient(90deg,#0A3D2A,#1DB87E)"></div></div>
+        <div class="bench-pct">48.9%</div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#25A67A"></div>
+          <div><div class="bench-model-name">GPT-4o</div><div class="bench-model-maker">OpenAI</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:38.8%; background:linear-gradient(90deg,#0A3D2A,#25A67A)"></div></div>
+        <div class="bench-pct">38.8%</div>
+      </div>
+
+      <div class="bench-divider"></div>
+
+      <!-- Google -->
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#4285F4"></div>
+          <div><div class="bench-model-name">Gemini 2.5 Pro</div><div class="bench-model-maker">Google · 2025</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:63.2%; background:linear-gradient(90deg,#0D1B3E,#4285F4)"></div></div>
+        <div class="bench-pct">63.2%</div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#5A9BFF"></div>
+          <div><div class="bench-model-name">Gemini 1.5 Pro</div><div class="bench-model-maker">Google</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:30.7%; background:linear-gradient(90deg,#0D1B3E,#5A9BFF)"></div></div>
+        <div class="bench-pct">30.7%</div>
+      </div>
+
+      <div class="bench-divider"></div>
+
+      <!-- Otros -->
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#22D3EE"></div>
+          <div><div class="bench-model-name">DeepSeek V3</div><div class="bench-model-maker">DeepSeek · China</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:42%; background:linear-gradient(90deg,#0A2030,#22D3EE)"></div></div>
+        <div class="bench-pct">42.0%</div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#F97316"></div>
+          <div><div class="bench-model-name">Mistral Large 2</div><div class="bench-model-maker">Mistral AI</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:24%; background:linear-gradient(90deg,#3D1A05,#F97316)"></div></div>
+        <div class="bench-pct">24.0%</div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-model">
+          <div class="bench-dot" style="background:#818CF8"></div>
+          <div><div class="bench-model-name">Llama 3.3 70B</div><div class="bench-model-maker">Meta</div></div>
+        </div>
+        <div class="bench-bar-wrap"><div class="bench-bar" style="width:20%; background:linear-gradient(90deg,#1A1B40,#818CF8)"></div></div>
+        <div class="bench-pct">20.0%</div>
+      </div>
+
+      <div class="bench-badge">
+        <strong>SWE-bench Verified</strong> — resuelve issues reales de repos open-source en GitHub sin intervención humana. Estándar de la industria para medir coding autónomo.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 4 – Context Window ────────────────────── -->
+  <section class="slide" id="s4">
+    <span class="eyebrow">Memoria de trabajo</span>
+    <h2>El <span class="highlight">Context Window</span></h2>
+    <div class="ctx-box">
+      <div class="ctx-label">¿Qué entra en el contexto?</div>
+      <div class="ctx-items">
+        <div class="ctx-item"><span class="ico">📋</span><span>System prompt<br/>del operador</span></div>
+        <div class="ctx-item"><span class="ico">💬</span><span>Historial de<br/>mensajes</span></div>
+        <div class="ctx-item"><span class="ico">📁</span><span>Archivos e<br/>imágenes adjuntos</span></div>
+        <div class="ctx-item"><span class="ico">🔍</span><span>Resultados de<br/>herramientas</span></div>
+        <div class="ctx-item"><span class="ico">📄</span><span>Documentos<br/>recuperados</span></div>
+        <div class="ctx-item"><span class="ico">💾</span><span>CLAUDE.md del<br/>proyecto</span></div>
+      </div>
+      <div class="ctx-footer">
+        <span class="token-text">0</span>
+        <div class="token-bar"><div class="token-fill"></div></div>
+        <span class="token-text">200,000 tokens</span>
+      </div>
+    </div>
+    <p class="sub" style="font-size:13px; margin-top:16px;">Cada sesión empieza desde cero — no hay memoria persistente entre conversaciones separadas.</p>
+  </section>
+
+  <!-- ── SLIDE 5 – CLAUDE.md ──────────────────────────── -->
+  <section class="slide" id="s5">
+    <span class="eyebrow">Instrucciones persistentes</span>
+    <h2>El archivo <span class="highlight">CLAUDE.md</span></h2>
+    <div class="md-wrap">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-red"></span>
+          <span class="t-yellow"></span>
+          <span class="t-green"></span>
+        </div>
+        <div class="terminal-body">
+<span class="cmt"># CLAUDE.md</span>
+
+<span class="kw">## Stack</span>
+Next.js 14 · NestJS · TypeORM
+Package manager: <span class="str">pnpm</span>
+
+<span class="kw">## Comandos</span>
+<span class="str">pnpm dev</span>   — servidor local
+<span class="str">pnpm build</span> — build producción
+
+<span class="kw">## Reglas</span>
+- No usar mocks en tests de DB
+- Comentar solo lógica compleja
+- PR por feature, no por archivo
+        </div>
+      </div>
+      <div class="md-points">
+        <div class="md-point">
+          <div class="num">1</div>
+          <div class="md-point-body">
+            <h4>Contexto persistente</h4>
+            <p>Se carga automáticamente en cada sesión. No repetís las mismas instrucciones.</p>
+          </div>
+        </div>
+        <div class="md-point">
+          <div class="num">2</div>
+          <div class="md-point-body">
+            <h4>Arquitectura del proyecto</h4>
+            <p>Documentá stack, comandos y patrones para que Claude entienda tu codebase de entrada.</p>
+          </div>
+        </div>
+        <div class="md-point">
+          <div class="num">3</div>
+          <div class="md-point-body">
+            <h4>Reglas de equipo</h4>
+            <p>Convenciones de código, estilo, qué hacer y qué evitar. Todo en un lugar.</p>
+          </div>
+        </div>
+        <div class="md-point">
+          <div class="num">4</div>
+          <div class="md-point-body">
+            <h4>Comando <code style="color:var(--coral);font-size:13px">#</code> para editar</h4>
+            <p>Podés actualizar el archivo en vivo: <em style="color:var(--sand-dim)"># Solo comentar código complejo</em></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 6 – /init ──────────────────────────────── -->
+  <section class="slide" id="s6">
+    <span class="eyebrow">Primer paso en un proyecto nuevo</span>
+    <h2>El comando <span class="highlight">/init</span></h2>
+    <div class="cmd-badge">/init</div>
+    <div class="init-flow">
+      <div class="flow-step">
+        <div class="fs-icon">📂</div>
+        <h4>Escanea el proyecto</h4>
+        <p>Analiza estructura de archivos, dependencias y patrones de código existentes.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-icon">🗺️</div>
+        <h4>Entiende el contexto</h4>
+        <p>Identifica propósito, arquitectura, comandos críticos y convenciones del equipo.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-icon">📝</div>
+        <h4>Genera CLAUDE.md</h4>
+        <p>Crea el archivo base con todo lo que descubrió, listo para editar y personalizar.</p>
+      </div>
+    </div>
+    <p class="sub" style="font-size:13px; margin-top:24px;">Corré <code style="color:var(--coral)">/init</code> una sola vez por proyecto — Claude aprende tu codebase instantáneamente.</p>
+  </section>
+
+  <!-- ── SLIDE 7 – Planning vs Thinking ──────────────── -->
+  <section class="slide" id="s7">
+    <span class="eyebrow">Modos avanzados</span>
+    <h2><span class="highlight">Planning</span> vs <span class="highlight">Thinking</span></h2>
+    <div class="modes">
+      <div class="mode-card">
+        <div class="mode-tag">Planning Mode</div>
+        <h3>Planificar primero</h3>
+        <p>Antes de escribir código, Claude presenta un plan paso a paso. Podés revisar, aprobar o ajustar la estrategia antes de que empiece a ejecutar.</p>
+        <div class="mode-use"><strong>Ideal para:</strong> features nuevas, refactors grandes, decisiones arquitectónicas</div>
+      </div>
+      <div class="mode-card right">
+        <div class="mode-tag">Thinking Mode</div>
+        <h3>Razonamiento profundo</h3>
+        <p>Claude "piensa en voz alta" antes de responder — explora pros, contras y casos borde internamente antes de darte una respuesta.</p>
+        <div class="mode-use"><strong>Ideal para:</strong> bugs difíciles, preguntas complejas, trade-offs técnicos</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 10 – Skills: ¿Qué son? ───────────────── -->
+  <section class="slide" id="s-skills1">
+    <span class="eyebrow">Extensiones de comportamiento</span>
+    <h2>¿Qué son los <span class="highlight">Skills</span>?</h2>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="sk-tag">/commit</div>
+        <h4>Commit inteligente</h4>
+        <p>Analiza los cambios staged y genera un mensaje de commit semántico con contexto real del diff.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-tag">/review-pr</div>
+        <h4>Code review</h4>
+        <p>Revisa un PR completo: lógica, seguridad, estilo y posibles bugs. Devuelve un reporte estructurado.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-tag">/pdf · /docx · /xlsx</div>
+        <h4>Generación de documentos</h4>
+        <p>Crea PDFs, Word o Excel desde el contenido del proyecto con un solo comando.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-tag">/claude-api</div>
+        <h4>Integración con API</h4>
+        <p>Scaffolding automático para apps que consumen la API de Anthropic con prompt caching incluido.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-tag">/schedule</div>
+        <h4>Tareas programadas</h4>
+        <p>Crea agentes remotos que corren en cron. Claude ejecuta tareas periódicas sin intervención manual.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-tag">/skill-creator</div>
+        <h4>Crear tus propios skills</h4>
+        <p>Podés definir skills personalizados para tu equipo: flujos repetitivos convertidos en comandos.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 11 – Skills: Funcionamiento y límites ── -->
+  <section class="slide" id="s-skills2">
+    <span class="eyebrow">Por dentro</span>
+    <h2>Skills — <span class="highlight">Cómo funcionan</span> y sus límites</h2>
+    <div class="skills-flow">
+      <div class="sf-step">
+        <div class="sf-ico">⌨️</div>
+        <h4>Invocás el skill</h4>
+        <p>Escribís <code style="color:var(--coral)">/commit</code> en el chat de Claude Code</p>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-ico">📄</div>
+        <h4>Se inyecta en el contexto</h4>
+        <p>El skill se expande a un prompt especializado que entra en la ventana de contexto</p>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-ico">⚙️</div>
+        <h4>Claude ejecuta</h4>
+        <p>El modelo corre con ese contexto enriquecido y realiza las acciones del skill</p>
+      </div>
+    </div>
+    <div class="limits-grid" style="margin-top:20px;">
+      <div class="limit-item">
+        <div class="li-ico">📊</div>
+        <div>
+          <h4>Consumen tokens</h4>
+          <p>Cada skill agrega ~500–2,000 tokens al contexto. En sesiones largas esto se acumula.</p>
+        </div>
+      </div>
+      <div class="limit-item">
+        <div class="li-ico">🔁</div>
+        <div>
+          <h4>Son secuenciales por defecto</h4>
+          <p>Un skill corre a la vez en la misma sesión. Para paralelismo real se necesitan agentes.</p>
+        </div>
+      </div>
+      <div class="limit-item">
+        <div class="li-ico">🧠</div>
+        <div>
+          <h4>Limitados por el modelo base</h4>
+          <p>Un skill no puede hacer lo que Claude no sabe hacer. Son prompts, no código arbitrario.</p>
+        </div>
+      </div>
+      <div class="limit-item">
+        <div class="li-ico">🔒</div>
+        <div>
+          <h4>No modifican el comportamiento core</h4>
+          <p>Los límites de seguridad y políticas de Anthropic siguen aplicando sin excepción.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 12 – Multi-agentes ─────────────────────── -->
+  <section class="slide" id="s-agents">
+    <span class="eyebrow">Escalar más allá de un solo chat</span>
+    <h2>Multi-<span class="highlight">Agentes</span></h2>
+    <div class="agent-split">
+      <div class="agent-col">
+        <div class="ac-tag">¿Por qué no solo en el prompt?</div>
+        <h3>Un solo contexto</h3>
+        <ul>
+          <li>200K tokens se llena en tareas grandes</li>
+          <li>Todo en uno = Claude pierde foco</li>
+          <li>No hay paralelismo real</li>
+          <li>Un error contamina toda la conversación</li>
+          <li>Difícil de auditar y depurar</li>
+        </ul>
+        <div class="agent-diagram">
+          <div class="agent-box main">Claude</div>
+          <div class="agent-line">→</div>
+          <div class="agent-box">Tarea A + B + C + D…</div>
+        </div>
+      </div>
+      <div class="agent-col right">
+        <div class="ac-tag">Con multi-agentes</div>
+        <h3>Contextos especializados</h3>
+        <ul>
+          <li>Cada agente tiene su propia ventana de 200K</li>
+          <li>Trabajan en paralelo, reduciendo tiempo total</li>
+          <li>Cada uno es experto en su subtarea</li>
+          <li>Fallos aislados, fácil de reintentar</li>
+          <li>Orquestador coordina resultados</li>
+        </ul>
+        <div class="agent-diagram">
+          <div class="agent-box main">Orquestador</div>
+          <div class="agent-line">→</div>
+          <div class="agent-box">A</div>
+          <div class="agent-line">+</div>
+          <div class="agent-box">B</div>
+          <div class="agent-line">+</div>
+          <div class="agent-box">C</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 13 – Contexto, Agentes y Skills ────────── -->
+  <section class="slide" id="s-ctx-budget">
+    <span class="eyebrow">Gestión de recursos</span>
+    <h2><span class="highlight">Contexto</span>, Agentes y Skills</h2>
+    <div class="ctx-budget">
+      <div class="ctx-budget-col">
+        <h4>¿Cuánto consume cada elemento?</h4>
+        <div class="budget-item">
+          <div class="bi-label-wrap">
+            <span class="bi-label">System prompt</span>
+            <span class="bi-desc">Instrucciones base del operador o plataforma. Fijo por sesión, no varía.</span>
+          </div>
+          <div class="budget-bar-wrap"><div class="budget-bar" style="width:3%; background:#4A8C6A"></div></div>
+          <span class="bi-val">~1–3K</span>
+        </div>
+        <div class="budget-item">
+          <div class="bi-label-wrap">
+            <span class="bi-label">CLAUDE.md</span>
+            <span class="bi-desc">Contexto persistente del proyecto. Más detallado = más tokens, mantenerlo conciso.</span>
+          </div>
+          <div class="budget-bar-wrap"><div class="budget-bar" style="width:5%; background:#4A8C6A"></div></div>
+          <span class="bi-val">~2–10K</span>
+        </div>
+        <div class="budget-item">
+          <div class="bi-label-wrap">
+            <span class="bi-label">Un skill activo</span>
+            <span class="bi-desc">El prompt del skill se inyecta al invocarlo. Se libera al terminar la acción.</span>
+          </div>
+          <div class="budget-bar-wrap"><div class="budget-bar" style="width:2%; background:var(--coral)"></div></div>
+          <span class="bi-val">~0.5–2K</span>
+        </div>
+        <div class="budget-item">
+          <div class="bi-label-wrap">
+            <span class="bi-label">Historial de chat</span>
+            <span class="bi-desc">El mayor consumidor. Cada mensaje (tuyo + respuesta) se acumula sin límite hasta saturar.</span>
+          </div>
+          <div class="budget-bar-wrap"><div class="budget-bar" style="width:30%; background:#8B6A3A"></div></div>
+          <span class="bi-val">crece ↑</span>
+        </div>
+        <div class="budget-item">
+          <div class="bi-label-wrap">
+            <span class="bi-label">Archivos adjuntos</span>
+            <span class="bi-desc">Código, imágenes o docs que subís. Un archivo grande puede consumir decenas de miles de tokens.</span>
+          </div>
+          <div class="budget-bar-wrap"><div class="budget-bar" style="width:20%; background:#4A6A8C"></div></div>
+          <span class="bi-val">variable</span>
+        </div>
+        <div class="budget-item">
+          <div class="bi-label-wrap">
+            <span class="bi-label">Subagente (nuevo)</span>
+            <span class="bi-desc">Cada agente spawneado obtiene una ventana completamente nueva e independiente de 200K.</span>
+          </div>
+          <div class="budget-bar-wrap"><div class="budget-bar" style="width:100%; background:linear-gradient(90deg,var(--coral-dim),var(--coral))"></div></div>
+          <span class="bi-val" style="color:var(--coral)">200K propio</span>
+        </div>
+      </div>
+      <div class="ctx-budget-col">
+        <h4>¿Cómo monitorear el uso?</h4>
+        <div class="budget-item" style="margin-bottom:14px;">
+          <div class="li-ico" style="font-size:18px;">💬</div>
+          <div>
+            <div style="font-size:13px;color:var(--sand);margin-bottom:3px;">Indicador en el chat</div>
+            <div style="font-size:12px;color:var(--sand-dim);">Claude Code muestra tokens usados / disponibles en tiempo real en la barra de estado.</div>
+          </div>
+        </div>
+        <div class="budget-item" style="margin-bottom:14px;">
+          <div class="li-ico" style="font-size:18px;">📊</div>
+          <div>
+            <div style="font-size:13px;color:var(--sand);margin-bottom:3px;">Comando /cost</div>
+            <div style="font-size:12px;color:var(--sand-dim);">Muestra el costo estimado y tokens consumidos en la sesión actual.</div>
+          </div>
+        </div>
+        <div class="budget-item">
+          <div class="li-ico" style="font-size:18px;">🔄</div>
+          <div>
+            <div style="font-size:13px;color:var(--sand);margin-bottom:3px;">Compact & /clear</div>
+            <div style="font-size:12px;color:var(--sand-dim);">Claude comprime automáticamente el historial. <code style="color:var(--coral)">/clear</code> resetea el contexto si se satura.</div>
+          </div>
+        </div>
+        <div class="ctx-tip">
+          <strong>Regla práctica:</strong> Usá subagentes cuando una tarea requiera más de ~50K tokens de contexto o cuando quieras correr subtareas en paralelo. Los skills son baratos; el historial largo es el mayor consumidor.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 14 – Demo en video ──────────────────────── -->
+  <section class="slide" id="s-video">
+    <span class="eyebrow">En acción</span>
+    <h2>Demo — <span class="highlight">Claude Code</span> construyendo una app</h2>
+    <div class="video-wrap">
+      <!-- Reemplazá esto con tu iframe de video -->
+      <div class="video-placeholder">
+        <div class="play-btn">▶</div>
+        <p>Video de demo — colocá el iframe aquí</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 15 – Closing ────────────────────────────── -->
+  <section class="slide" id="s8">
+    <span class="eyebrow">Resumen</span>
+    <h2>Empezá hoy con<br/><span class="highlight">Claude Code</span></h2>
+    <p class="sub">Instalá el CLI, correlo en tu proyecto, ejecutá <code style="color:var(--coral)">/init</code> y dejá que Claude entienda tu codebase.<br/>Después, simplemente pedile lo que necesitás.</p>
+    <div class="links">
+      <div class="link-pill"><span class="ico">📦</span> npm i -g @anthropic-ai/claude-code</div>
+      <div class="link-pill"><span class="ico">📖</span> docs.anthropic.com</div>
+      <div class="link-pill"><span class="ico">💬</span> claude.ai/code</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">Diapositivas</div>
+
+  <div class="sidebar-item active" onclick="goTo(0)">
+    <span class="sb-num">01</span>
+    <div><div class="sb-label">Introducción a Claude Code</div><div class="sb-sub">Título</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(1)">
+    <span class="sb-num">02</span>
+    <div><div class="sb-label">Asistentes de IA</div><div class="sb-sub">ChatGPT, Gemini, Copilot…</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(2)">
+    <span class="sb-num">03</span>
+    <div><div class="sb-label">¿Qué es Claude?</div><div class="sb-sub">Origen y capacidades</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(3)">
+    <span class="sb-num">04</span>
+    <div><div class="sb-label">Claude vs Claude Code</div><div class="sb-sub">La diferencia clave</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(4)">
+    <span class="sb-num">05</span>
+    <div><div class="sb-label">SWE-bench Verified</div><div class="sb-sub">Benchmarks de desarrollo</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(5)">
+    <span class="sb-num">06</span>
+    <div><div class="sb-label">Context Window</div><div class="sb-sub">Memoria de trabajo</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(6)">
+    <span class="sb-num">07</span>
+    <div><div class="sb-label">CLAUDE.md</div><div class="sb-sub">Instrucciones persistentes</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(7)">
+    <span class="sb-num">08</span>
+    <div><div class="sb-label">El comando /init</div><div class="sb-sub">Primer paso en un proyecto</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(8)">
+    <span class="sb-num">09</span>
+    <div><div class="sb-label">Planning vs Thinking</div><div class="sb-sub">Modos avanzados</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(9)">
+    <span class="sb-num">10</span>
+    <div><div class="sb-label">Skills — ¿Qué son?</div><div class="sb-sub">Comandos reutilizables</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(10)">
+    <span class="sb-num">11</span>
+    <div><div class="sb-label">Skills — Funcionamiento</div><div class="sb-sub">Cómo funcionan y sus límites</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(11)">
+    <span class="sb-num">12</span>
+    <div><div class="sb-label">Multi-Agentes</div><div class="sb-sub">Contextos en paralelo</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(12)">
+    <span class="sb-num">13</span>
+    <div><div class="sb-label">Contexto, Agentes y Skills</div><div class="sb-sub">Gestión de tokens</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(13)">
+    <span class="sb-num">14</span>
+    <div><div class="sb-label">Demo en video</div><div class="sb-sub">Claude Code en acción</div></div>
+  </div>
+  <div class="sidebar-item" onclick="goTo(14)">
+    <span class="sb-num">15</span>
+    <div><div class="sb-label">Empezá con Claude Code</div><div class="sb-sub">Cierre</div></div>
+  </div>
+</nav>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-left">Creado por <strong>Factor K Software</strong> con <span class="heart">♥️</span></div>
+  <div class="footer-right">Webinar <em>Claude Code: una introducción práctica al desarrollo asistido por IA</em> · <em>Alexis Lo &amp; Josué Arronis</em></div>
+</footer>
+
+<!-- Nav -->
+<div class="nav">
+  <button id="menuBtn" onclick="toggleSidebar()" title="Ver diapositivas" style="font-size:14px;">☰</button>
+  <button id="prev" onclick="go(-1)" disabled>←</button>
+  <div class="progress" id="dots"></div>
+  <button id="next" onclick="go(1)">→</button>
+</div>
+
+<script>
+  const slides      = document.querySelectorAll('.slide');
+  const numEl       = document.getElementById('slideNum');
+  const dotsEl      = document.getElementById('dots');
+  const sbItems     = document.querySelectorAll('.sidebar-item');
+  const sidebar     = document.getElementById('sidebar');
+  const overlay     = document.getElementById('sidebarOverlay');
+  const menuBtn     = document.getElementById('menuBtn');
+  let cur = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(index) {
+    sbItems[cur].classList.remove('active');
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('on');
+    cur = Math.max(0, Math.min(slides.length - 1, index));
+    sbItems[cur].classList.add('active');
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('on');
+    numEl.textContent = String(cur + 1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === slides.length - 1;
+    closeSidebar();
+  }
+
+  function go(dir) { goTo(cur + dir); }
+
+  function toggleSidebar() {
+    const isOpen = sidebar.classList.contains('open');
+    isOpen ? closeSidebar() : openSidebar();
+  }
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    menuBtn.textContent = '✕';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    menuBtn.textContent = '☰';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSidebar();
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+  });
+</script>
+</body>
+</html>
