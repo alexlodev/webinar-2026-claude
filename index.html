@@ -46,12 +46,34 @@
       padding: 60px 80px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.45s ease;
+      will-change: opacity, transform;
     }
     .slide.active {
       opacity: 1;
       pointer-events: all;
     }
+
+    /* ─── Slide transition animations ───────────────────── */
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(56px); }
+      to   { opacity: 1; transform: translateX(0);    }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-56px); }
+      to   { opacity: 1; transform: translateX(0);     }
+    }
+    @keyframes slideOutLeft {
+      from { opacity: 1; transform: translateX(0);     }
+      to   { opacity: 0; transform: translateX(-56px); }
+    }
+    @keyframes slideOutRight {
+      from { opacity: 1; transform: translateX(0);    }
+      to   { opacity: 0; transform: translateX(56px); }
+    }
+    .anim-in-right  { animation: slideInRight  0.38s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+    .anim-in-left   { animation: slideInLeft   0.38s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+    .anim-out-left  { animation: slideOutLeft  0.30s cubic-bezier(0.55,0,1,0.45)       forwards; }
+    .anim-out-right { animation: slideOutRight 0.30s cubic-bezier(0.55,0,1,0.45)       forwards; }
 
     /* ─── Typography ────────────────────────────────────── */
     .eyebrow {
@@ -965,7 +987,7 @@
 
   <!-- ── SLIDE 1 – Title ─────────────────────────────── -->
   <section class="slide active" id="s1">
-    <div class="badge"><span class="dot-live"></span>WEBINAR 2026</div>
+    <div class="badge"><span class="dot-live"></span>Factor K Software · Webinar 2026</div>
     <h1>Introducción a<br/><span>Claude Code</span></h1>
     <div class="divider"></div>
     <p class="meta">Anthropic AI · Herramientas para Desarrolladores</p>
@@ -1702,17 +1724,43 @@ Package manager: <span class="str">pnpm</span>
     dotsEl.appendChild(d);
   });
 
+  let animating = false;
+
   function goTo(index) {
+    index = Math.max(0, Math.min(slides.length - 1, index));
+    if (index === cur || animating) return;
+    animating = true;
+
+    const dir       = index > cur ? 1 : -1;
+    const outSlide  = slides[cur];
+    const outClass  = dir > 0 ? 'anim-out-left'  : 'anim-out-right';
+    const inClass   = dir > 0 ? 'anim-in-right'  : 'anim-in-left';
+
+    // Update sidebar + dots immediately
     sbItems[cur].classList.remove('active');
-    slides[cur].classList.remove('active');
     dotsEl.children[cur].classList.remove('on');
-    cur = Math.max(0, Math.min(slides.length - 1, index));
+    cur = index;
     sbItems[cur].classList.add('active');
-    slides[cur].classList.add('active');
     dotsEl.children[cur].classList.add('on');
     numEl.textContent = String(cur + 1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
     document.getElementById('prev').disabled = cur === 0;
     document.getElementById('next').disabled = cur === slides.length - 1;
+
+    // Animate out
+    outSlide.classList.remove('active');
+    outSlide.classList.add(outClass);
+
+    // Animate in
+    slides[cur].classList.add(inClass);
+
+    const DURATION = 400;
+    setTimeout(() => {
+      outSlide.classList.remove(outClass);
+      slides[cur].classList.remove(inClass);
+      slides[cur].classList.add('active');
+      animating = false;
+    }, DURATION);
+
     closeSidebar();
   }
 
